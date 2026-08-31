@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" href="assets/favicon.png" type="image/png" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+body{margin:0;background:#0b1e2e}
+a{color:#33c9fb}a:hover{color:#a5fb03}
+@keyframes gaiPulse{50%{opacity:.6}}
+@keyframes gaiRise{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+@keyframes gaiCaret{0%,100%{opacity:0}50%{opacity:1}}
+.gai-scroll::-webkit-scrollbar{width:9px}
+.gai-scroll::-webkit-scrollbar-thumb{background:rgba(140,165,185,.3);border-radius:100px}
+.gai-scroll::-webkit-scrollbar-track{background:transparent}
+</style>
+</helmet>
+
+<div style="{{ gateStyle }}">
+<img src="assets/gumbleyai-logo.png" alt="Gumbley AI" width="1536" height="1024" style="display:block;width:min(500px,88vw);height:auto;aspect-ratio:1536/1024;filter:drop-shadow(0 14px 34px rgba(60,224,251,.22))" />
+<div style="font:600 11px/1 'Nunito Sans',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#546c85;margin-top:10px">Brought to you by:</div>
+<img src="assets/gumbley-wordmark.png" alt="Gumbley Technologies" width="1542" height="627" style="display:block;width:110px;height:auto;aspect-ratio:1542/627;margin-top:8px" />
+<button onClick="{{ signIn }}" style="margin-top:26px;display:flex;align-items:center;gap:10px;padding:15px 26px;border-radius:100px;border:0;cursor:pointer;font:700 14.5px/1 'Nunito Sans',sans-serif;color:#0a1826;background:linear-gradient(100deg,#a5fb03,#3ce0fb);box-shadow:0 10px 30px rgba(60,224,251,.25)">
+<span style="width:8px;height:8px;border-radius:50%;background:#0a1826"></span>Continue with your Gumbley account</button>
+</div>
+
+<div style="{{ appStyle }}">
+
+<aside style="{{ sideStyle }}">
+<div style="display:flex;align-items:center;gap:9px;padding:14px 14px 10px">
+<img src="assets/gumbleyai-logo.png" alt="" width="1536" height="1024" style="display:block;width:42px;height:auto;aspect-ratio:1536/1024" />
+<span style="font:700 15px/1 'Outfit',system-ui,sans-serif;color:var(--gaiInk)">Gumbley AI</span>
+<button onClick="{{ toggleSide }}" title="Close sidebar" style="{{ iconGhost }};margin-left:auto">⟨</button>
+</div>
+<div style="padding:0 10px;display:flex;flex-direction:column;gap:3px">
+<button onClick="{{ newChat }}" style="{{ sideBtn }}"><span style="font-weight:800">＋</span>New chat</button>
+<button style="{{ sideBtn }}">⌕ Search chats</button>
+<button style="{{ sideBtn }}">▦ Workspace</button>
+<button style="{{ sideBtn }}">🗎 Knowledge</button>
+</div>
+<div style="padding:16px 14px 6px;font:700 9px/1 'Nunito Sans',sans-serif;letter-spacing:.15em;text-transform:uppercase;color:var(--gaiDim)">Chats</div>
+<div class="gai-scroll" style="flex:1 1 auto;overflow-y:auto;min-height:0;padding:0 10px 10px;display:flex;flex-direction:column;gap:2px">
+<sc-for list="{{ chats }}" as="c" hint-placeholder-count="4">
+<button onClick="{{ c.open }}" style="{{ c.style }}">{{ c.title }}</button>
+</sc-for>
+</div>
+<div style="border-top:1px solid var(--gaiLine);padding:10px">
+<button onClick="{{ toggleMenu }}" style="width:100%;display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;border:0;cursor:pointer;background:transparent;text-align:left" style-hover="background:var(--gaiHover)">
+<span style="width:32px;height:32px;flex:0 0 auto;border-radius:50%;background:linear-gradient(140deg,#0093f7,#0f4c78);display:flex;align-items:center;justify-content:center;font:700 13px/1 'Outfit',sans-serif;color:#fff">B</span>
+<span style="min-width:0;display:flex;flex-direction:column;gap:2px">
+<span style="font:700 12.5px/1.2 'Nunito Sans',sans-serif;color:var(--gaiInk);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Ben Gumbley</span>
+<span style="font:600 10px/1.2 'Nunito Sans',sans-serif;color:var(--gaiDim);white-space:nowrap">Gumbley Technologies · staff</span>
+</span>
+</button>
+<div style="{{ menuStyle }}">
+<button style="{{ menuItem }}">⚙ Settings</button>
+<button style="{{ menuItem }}">▤ Admin panel</button>
+<button onClick="{{ toggleTheme }}" style="{{ menuItem }}">{{ themeGlyph }} {{ themeLabel }}</button>
+<button onClick="{{ signOut }}" style="{{ menuItem }};color:#f09a9a">⏻ Sign out everywhere</button>
+</div>
+</div>
+</aside>
+
+<main style="flex:1 1 auto;display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--gaiBg)">
+
+<div style="flex:0 0 auto;display:flex;align-items:center;gap:9px;padding:11px 16px;border-bottom:1px solid var(--gaiLine)">
+<button onClick="{{ toggleSide }}" title="Toggle sidebar" style="{{ openSideBtn }}">☰</button>
+<div style="position:relative">
+<button onClick="{{ toggleModels }}" style="display:flex;align-items:center;gap:9px;padding:9px 14px;border-radius:12px;border:1px solid var(--gaiLine);background:transparent;cursor:pointer">
+<span style="font:700 13.5px/1.2 'Outfit',system-ui,sans-serif;color:var(--gaiInk)">{{ modelName }}</span>
+<span style="font:600 10.5px/1.2 'Nunito Sans',sans-serif;color:var(--gaiDim)">{{ modelSub }}</span>
+<span style="font-size:9px;color:var(--gaiDim)">▾</span>
+</button>
+<div style="{{ modelMenuStyle }}">
+<sc-for list="{{ models }}" as="m" hint-placeholder-count="3">
+<button onClick="{{ m.pick }}" style="{{ m.style }}">
+<span style="display:flex;flex-direction:column;gap:3px;min-width:0;text-align:left">
+<span style="font:700 12.5px/1.2 'Outfit',system-ui,sans-serif;color:var(--gaiInk)">{{ m.name }}</span>
+<span style="font:600 10.5px/1.4 'Nunito Sans',sans-serif;color:var(--gaiDim)">{{ m.sub }}</span>
+</span>
+<span style="{{ m.tick }}">✓</span>
+</button>
+</sc-for>
+</div>
+</div>
+<span style="margin-left:auto;font:600 10px/1.4 'Nunito Sans',sans-serif;color:var(--gaiDim);text-align:right">dashboard ↗ · one session, both apps</span>
+</div>
+
+<div ref="{{ scrollRef }}" class="gai-scroll" style="flex:1 1 auto;overflow-y:auto;min-height:0;display:flex;flex-direction:column">
+<div style="{{ emptyStyle }}">
+<img src="assets/gumbleyai-logo.png" alt="" width="1536" height="1024" style="display:block;width:min(500px,88vw);height:auto;aspect-ratio:1536/1024;margin-bottom:14px" />
+<div style="font:700 clamp(22px,3.4vw,30px)/1.2 'Outfit',system-ui,sans-serif;color:var(--gaiInk);text-align:center;text-wrap:balance">Are you ready for tomorrow?</div>
+<div style="font:400 13px/1.6 'Nunito Sans',sans-serif;color:var(--gaiDim);margin-top:8px;text-align:center;max-width:36em;text-wrap:pretty">Your models, your data, your rules — running on Gumbley hardware with your Gumbley account. Pick a starting point or just type.</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px;margin-top:22px;width:min(660px,100%)">
+<sc-for list="{{ prompts }}" as="p" hint-placeholder-count="4">
+<button onClick="{{ p.ask }}" style="{{ p.style }}">
+<span style="font:700 12px/1.35 'Nunito Sans',sans-serif;color:var(--gaiInk)">{{ p.title }}</span>
+<span style="font:400 10.5px/1.45 'Nunito Sans',sans-serif;color:var(--gaiDim)">{{ p.sub }}</span>
+</button>
+</sc-for>
+</div>
+</div>
+<div style="{{ msgsWrapStyle }}">
+<sc-for list="{{ messages }}" as="m" hint-placeholder-count="2">
+<div style="{{ m.wrap }}">
+<span style="{{ m.avatar }}">{{ m.who }}</span>
+<div style="min-width:0;flex:1 1 auto;display:flex;flex-direction:column;gap:6px">
+<div style="{{ m.bubble }}">{{ m.text }}<span style="{{ m.caret }}">▌</span></div>
+<div style="{{ m.actions }}">⧉ Copy&nbsp;&nbsp;&nbsp;↻ Regenerate&nbsp;&nbsp;&nbsp;△ Good&nbsp;&nbsp;&nbsp;▽ Bad</div>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+
+<div style="flex:0 0 auto;padding:12px 16px 14px;display:flex;flex-direction:column;gap:7px;max-width:860px;width:100%;margin:0 auto;box-sizing:border-box">
+<form onSubmit="{{ send }}" style="display:flex;align-items:flex-end;gap:8px;padding:9px 10px 9px 14px;border-radius:22px;border:1.5px solid var(--gaiLine);background:var(--gaiField)">
+<button type="button" title="Attach" style="{{ iconGhost }}">＋</button>
+<textarea name="q" rows="1" value="{{ draft }}" onInput="{{ setDraft }}" onKeyDown="{{ keyDown }}" placeholder="Message Gumbley AI…" style="flex:1 1 auto;min-width:0;resize:none;max-height:150px;border:0;outline:none;background:transparent;font:400 13.5px/1.55 'Nunito Sans',sans-serif;color:var(--gaiInk);padding:7px 0"></textarea>
+<button type="button" title="Voice" style="{{ iconGhost }}">🎙</button>
+<button type="submit" title="Send" style="{{ sendStyle }}">↑</button>
+</form>
+<div style="font:400 10px/1.4 'Nunito Sans',sans-serif;color:var(--gaiDim);text-align:center">Gumbley AI can make mistakes — verify important work. Chats stay on this server in Canada.</div>
+</div>
+
+</main>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;startAuthed&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;}}">
+const MODELS = [
+  { id: 'core', name: 'Gumbley Core', sub: 'Claude Sonnet · everyday work, fast' },
+  { id: 'reason', name: 'Gumbley Reason', sub: 'Claude Opus · deep analysis, longer answers' },
+  { id: 'local', name: 'Gumbley Local', sub: 'Llama 3.3 70B · on our hardware, data never leaves the box' }
+];
+const CHATS = [
+  { id: 'c1', title: 'Maintenance window email for Palm Cove' },
+  { id: 'c2', title: 'Summarize UPS spec sheets' },
+  { id: 'c3', title: 'Wi-Fi proposal outline — marina site' },
+  { id: 'c4', title: 'Translate service quote to French' }
+];
+const DEMO = {
+  q: 'Draft a short maintenance-window email: tomorrow 10pm\u201311pm, guest Wi-Fi only, Palm Cove Resort.',
+  a: 'Subject: Guest Wi-Fi maintenance \u2014 tomorrow 10:00\u201311:00 PM\n\nHi Palm Cove team,\n\nWe\u2019re performing scheduled maintenance on the guest Wi-Fi network tomorrow between 10:00 and 11:00 PM. Guests may see a brief disconnection of up to 10 minutes inside that window; front-desk systems, payments and staff networks are not affected.\n\nNo action is needed on your side. If anything looks off after 11 PM, call us at 519-804-5644 and we\u2019ll jump on it.\n\n\u2014 Gumbley Technologies'
+};
+
+class Component extends DCLogic {
+  state = {
+    authed: false, side: true, menu: false, modelMenu: false,
+    model: 'core', chat: '', msgs: [], draft: '', streamId: '', theme: 'dark'
+  };
+
+  componentDidMount() {
+    if (this.props.startAuthed ?? false) this.setState({ authed: true });
+  }
+  componentWillUnmount() { if (this.timer) clearInterval(this.timer); }
+  componentDidUpdate() { if (this.pin) { this.pin = false; if (this.scroller) this.scroller.scrollTop = this.scroller.scrollHeight; } }
+
+  send(text) {
+    const q = (text || '').trim();
+    if (!q || this.state.streamId) return;
+    const id = 'm' + Date.now();
+    const msgs = this.state.msgs.concat([
+      { id: id + 'q', from: 'you', text: q, done: true },
+      { id, from: 'ai', text: '', full: DEMO.a, done: false }
+    ]);
+    this.pin = true;
+    this.setState({ msgs, draft: '', streamId: id, chat: this.state.chat || 'new' });
+    if (this.timer) clearInterval(this.timer);
+    this.timer = setInterval(() => {
+      this.pin = true;
+      const m = this.state.msgs.find(x => x.id === id);
+      if (!m) { clearInterval(this.timer); return; }
+      m.text = m.full.slice(0, m.text.length + 4 + Math.floor(Math.random() * 5));
+      if (m.text.length >= m.full.length) { m.done = true; clearInterval(this.timer); this.setState({ streamId: '' }); return; }
+      this.setState({ msgs: this.state.msgs });
+    }, 18);
+  }
+
+  renderVals() {
+    const st = this.state;
+    const dark = st.theme === 'dark';
+    const P = dark ? {
+      bg: '#0b1e2e', side: '#081826', field: '#10283c', line: 'rgba(200,230,255,.14)', ink: '#e7f6ff',
+      dim: '#8fa8bd', hover: 'rgba(255,255,255,.06)', bub: '#102a3d', you: '#0f3d5e',
+      acc: '#a5fb03', accInk: '#0a1826'
+    } : {
+      bg: '#f4f9fd', side: '#eaf2f8', field: '#ffffff', line: 'rgba(10,24,38,.14)', ink: '#0a1826',
+      dim: '#546c85', hover: 'rgba(10,24,38,.06)', bub: '#ffffff', you: '#dcecf8',
+      acc: '#5aa300', accInk: '#ffffff'
+    };
+    const vars = '--gaiBg:' + P.bg + ';--gaiSide:' + P.side + ';--gaiField:' + P.field + ';--gaiLine:' + P.line + ';--gaiInk:' + P.ink + ';--gaiDim:' + P.dim + ';--gaiHover:' + P.hover;
+    const iconGhost = 'width:34px;height:34px;flex:0 0 auto;border-radius:10px;border:0;cursor:pointer;background:transparent;color:var(--gaiDim);font:600 15px/1 \'Nunito Sans\',sans-serif;display:flex;align-items:center;justify-content:center';
+    const sideBtn = 'display:flex;align-items:center;gap:9px;width:100%;padding:9px 11px;border-radius:11px;border:0;cursor:pointer;background:transparent;text-align:left;font:600 12.5px/1.3 \'Nunito Sans\',sans-serif;color:var(--gaiInk)';
+    const menuItem = 'display:flex;align-items:center;gap:9px;width:100%;padding:9px 11px;border-radius:9px;border:0;cursor:pointer;background:transparent;text-align:left;font:600 12px/1.3 \'Nunito Sans\',sans-serif;color:var(--gaiInk)';
+    const model = MODELS.find(m => m.id === st.model) || MODELS[0];
+    const empty = !st.msgs.length;
+
+    return {
+      iconGhost, sideBtn, menuItem,
+      gateStyle: st.authed ? 'display:none'
+        : 'min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:40px 24px;background:radial-gradient(90% 70% at 50% 30%,#0f3d5e 0%,#0b1e2e 55%,#081521 100%);font-family:\'Nunito Sans\',system-ui,sans-serif',
+      signIn: () => this.setState({ authed: true }),
+      signOut: () => this.setState({ authed: false, menu: false, msgs: [], chat: '' }),
+
+      appStyle: st.authed
+        ? 'display:flex;height:100vh;overflow:hidden;font-family:\'Nunito Sans\',system-ui,sans-serif;' + vars
+        : 'display:none',
+      sideStyle: st.side
+        ? 'flex:0 0 262px;display:flex;flex-direction:column;min-height:0;background:var(--gaiSide);border-right:1px solid var(--gaiLine)'
+        : 'display:none',
+      toggleSide: () => this.setState({ side: !st.side }),
+      openSideBtn: st.side ? 'display:none' : iconGhost,
+      newChat: () => { this.pin = true; this.setState({ msgs: [], chat: '', streamId: '' }); },
+      chats: CHATS.map(c => ({
+        title: c.title,
+        open: () => { this.pin = true; this.setState({ chat: c.id, msgs: [{ id: c.id + 'q', from: 'you', text: DEMO.q, done: true }, { id: c.id + 'a', from: 'ai', text: DEMO.a, full: DEMO.a, done: true }] }); },
+        style: 'display:block;width:100%;padding:9px 11px;border-radius:11px;border:0;cursor:pointer;text-align:left;font:400 12px/1.4 \'Nunito Sans\',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:' + (st.chat === c.id ? P.hover : 'transparent') + ';color:' + (st.chat === c.id ? 'var(--gaiInk)' : 'var(--gaiDim)')
+      })),
+      toggleMenu: () => this.setState({ menu: !st.menu }),
+      menuStyle: st.menu ? 'display:flex;flex-direction:column;gap:1px;margin-top:6px;padding:6px;border-radius:13px;border:1px solid var(--gaiLine);background:var(--gaiField)' : 'display:none',
+      toggleTheme: () => this.setState({ theme: dark ? 'light' : 'dark' }),
+      themeGlyph: dark ? '☀' : '☾',
+      themeLabel: dark ? 'Light mode' : 'Dark mode',
+
+      toggleModels: () => this.setState({ modelMenu: !st.modelMenu }),
+      modelName: model.name,
+      modelSub: model.sub.split(' · ')[0],
+      modelMenuStyle: st.modelMenu ? 'position:absolute;left:0;top:calc(100% + 6px);z-index:20;width:330px;display:flex;flex-direction:column;gap:2px;padding:7px;border-radius:15px;border:1px solid var(--gaiLine);background:var(--gaiField);box-shadow:0 18px 44px rgba(4,16,26,.35)' : 'display:none',
+      models: MODELS.map(m => ({
+        name: m.name, sub: m.sub,
+        pick: () => this.setState({ model: m.id, modelMenu: false }),
+        tick: 'margin-left:auto;font:700 13px/1 sans-serif;color:' + P.acc + (st.model === m.id ? '' : ';visibility:hidden'),
+        style: 'display:flex;align-items:center;gap:10px;width:100%;padding:10px 11px;border-radius:11px;border:0;cursor:pointer;background:' + (st.model === m.id ? P.hover : 'transparent')
+      })),
+
+      scrollRef: el => { this.scroller = el; },
+      emptyStyle: empty ? 'flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 24px' : 'display:none',
+      prompts: [
+        { title: 'Draft a client update', sub: 'Maintenance window, outage note, renewal' },
+        { title: 'Explain an error log', sub: 'Paste it and get the story in plain words' },
+        { title: 'Plan a site survey', sub: 'Checklist for a building walkthrough' },
+        { title: 'Translate a quote', sub: 'French or Spanish, business tone' }
+      ].map(p => ({
+        title: p.title, sub: p.sub,
+        ask: () => this.send(DEMO.q),
+        style: 'display:flex;flex-direction:column;gap:5px;padding:13px 15px;border-radius:15px;border:1px solid var(--gaiLine);background:transparent;cursor:pointer;text-align:left'
+      })),
+      msgsWrapStyle: empty ? 'display:none' : 'display:flex;flex-direction:column;gap:18px;padding:26px 20px;max-width:860px;width:100%;margin:0 auto;box-sizing:border-box',
+      messages: st.msgs.map(m => {
+        const you = m.from === 'you';
+        return {
+          who: you ? 'B' : 'G',
+          avatar: 'width:30px;height:30px;flex:0 0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;font:700 12px/1 \'Outfit\',sans-serif;' +
+            (you ? 'background:linear-gradient(140deg,#0093f7,#0f4c78);color:#fff' : 'background:linear-gradient(140deg,#a5fb03,#3ce0fb);color:#0a1826'),
+          wrap: 'display:flex;gap:11px;align-items:flex-start;animation:gaiRise .18s ease-out',
+          bubble: (you
+            ? 'background:' + P.you + ';border:1px solid var(--gaiLine);'
+            : 'background:' + P.bub + ';border:1px solid var(--gaiLine);') +
+            'padding:12px 15px;border-radius:5px 16px 16px 16px;font:400 13px/1.65 \'Nunito Sans\',sans-serif;color:var(--gaiInk);white-space:pre-wrap;text-wrap:pretty',
+          text: m.text,
+          caret: st.streamId === m.id ? 'color:' + P.acc + ';animation:gaiCaret 1s steps(1) infinite' : 'display:none',
+          actions: (!you && m.done) ? 'font:600 10px/1 \'Nunito Sans\',sans-serif;color:var(--gaiDim);padding-left:2px' : 'display:none'
+        };
+      }),
+
+      draft: st.draft,
+      setDraft: e => this.setState({ draft: e.target.value }),
+      keyDown: e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.send(st.draft); } },
+      send: e => { e.preventDefault(); this.send(st.draft); },
+      sendStyle: 'width:36px;height:36px;flex:0 0 auto;border-radius:50%;border:0;cursor:pointer;font:700 15px/1 sans-serif;background:' +
+        (st.draft.trim() && !st.streamId ? P.acc : P.hover) + ';color:' + (st.draft.trim() && !st.streamId ? P.accInk : 'var(--gaiDim)')
+    };
+  }
+}
+</script>
+</body>
+</html>
