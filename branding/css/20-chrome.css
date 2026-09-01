@@ -1,0 +1,99 @@
+/* Gumbley AI — chrome.
+ *
+ * Everything here that the palette file could not do with a variable. Each
+ * rule targets an id or an element, never a Tailwind class chain, so an
+ * upstream restyle of a component changes its look but cannot leave a broken
+ * half-branded rule behind: if an id ever disappears the rule simply stops
+ * applying and that surface reverts to stock Open WebUI.
+ *
+ * SPECIFICITY NOTE: custom.css is linked in <head> and SvelteKit injects the
+ * app stylesheet after it. The variable overrides in 10-palette.css win on
+ * layer (unlayered beats @layer theme), but the rules below compete with
+ * ordinary unlayered app rules, where source order decides ties — so several
+ * carry a leading `html`/`html.dark` purely to out-specify the original.
+ */
+
+/* ── Accent: the send button ─────────────────────────────────────────────
+ * Stock is monochrome (`bg-black … dark:bg-white`). The design gives it the
+ * brand accent — lime on dark, green on light — which is the single most
+ * recognisable colour moment in the whole UI.
+ */
+html #send-message-button:not(.disabled):not(:disabled) {
+	background-color: var(--gt-accent);
+	color: var(--gt-accent-ink);
+}
+
+html #send-message-button:not(.disabled):not(:disabled):hover {
+	filter: brightness(1.08);
+}
+
+/* ── Links ──────────────────────────────────────────────────────────────
+ * Design: cyan at rest, lime on hover. `.marked a` is the class Open WebUI
+ * puts on rendered-markdown links inside assistant replies.
+ */
+html .marked a,
+html .prose a,
+html a.underline {
+	color: var(--gt-cyan);
+}
+
+html .marked a:hover,
+html .prose a:hover,
+html a.underline:hover {
+	color: var(--gt-lime);
+}
+
+/* ── Scrollbars ─────────────────────────────────────────────────────────
+ * Design: 9px track, translucent slate thumb, fully round, no track fill.
+ * Open WebUI ships its own at 0.45rem with a grey thumb; these out-specify it.
+ */
+html ::-webkit-scrollbar {
+	width: 9px;
+	height: 9px;
+}
+
+html ::-webkit-scrollbar-thumb,
+html.dark ::-webkit-scrollbar-thumb {
+	background-color: rgba(140, 165, 185, 0.3);
+	border: 0;
+	border-radius: 100px;
+}
+
+html ::-webkit-scrollbar-thumb:hover,
+html.dark ::-webkit-scrollbar-thumb:hover {
+	background-color: rgba(140, 165, 185, 0.5);
+}
+
+html ::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+/* Firefox has no ::-webkit- equivalents; this is the whole story there. */
+html {
+	scrollbar-color: rgba(140, 165, 185, 0.3) transparent;
+}
+
+/* ── Text selection ─────────────────────────────────────────────────────── */
+::selection {
+	background: rgba(51, 201, 251, 0.28);
+}
+
+/* ── Splash screen ───────────────────────────────────────────────────────
+ * src/app.html hard-codes #fff / #000 in a <style> block that sits AFTER this
+ * file in document order, so these need the extra `body` to win the tie.
+ * Without it the first paint is a white flash before the app mounts.
+ */
+html body #splash-screen {
+	background: #f4f9fd;
+}
+
+html.dark body #splash-screen {
+	background: #0b1e2e;
+}
+
+/* The splash logo is sized for Open WebUI's square mark; the Gumbley AI logo
+ * is 3:2, so it needs room to breathe rather than the stock 6rem height. */
+html body #splash-screen #logo {
+	height: 5rem;
+	width: auto;
+}

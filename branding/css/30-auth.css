@@ -1,0 +1,113 @@
+/* Gumbley AI — the sign-in gate.
+ *
+ * The design reference draws sign-in as a single centred column on a dark
+ * radial backdrop: hero lock-up, "Brought to you by:" + the Gumbley
+ * Technologies wordmark, then one gradient pill. Open WebUI's auth route has
+ * the DOM for that already — it just looks nothing like it — so this restyles
+ * in place and adds the two brand images as pseudo-elements.
+ *
+ * ANCHORS: #auth-page, #auth-container and #auth-login-card are ids in
+ * src/routes/auth/+page.svelte. scripts/branding/apply.sh --check asserts all
+ * three still exist after an upstream merge. If one is ever renamed the rules
+ * below stop matching and sign-in falls back to stock Open WebUI — degraded,
+ * never broken.
+ *
+ * The gate is dark in BOTH themes, exactly as the reference has it: it is the
+ * first thing anyone sees, and the brand art is drawn for a dark ground.
+ */
+
+html #auth-page > div:first-child {
+	background-color: #0b1e2e;
+	background-image: radial-gradient(90% 70% at 50% 30%, #0f3d5e 0%, #0b1e2e 55%, #081521 100%);
+}
+
+/* Light-theme users land here too, and Tailwind would hand them `text-black`
+ * on that dark ground. */
+html #auth-container,
+html #auth-login-card {
+	color: #e7f6ff;
+}
+
+html #auth-page .text-gray-600,
+html #auth-page .text-gray-500 {
+	color: #8fa8bd;
+}
+
+/* ── The centred column ──────────────────────────────────────────────────
+ * Ordering trick: the card's real children keep the default order:0, and the
+ * two pseudo-elements take negative orders, so the artwork lands above the
+ * form without depending on what the form itself contains.
+ */
+html #auth-login-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+/* Hero lock-up. Sized as the reference does — min(500px, 88vw). */
+html #auth-login-card::before {
+	content: '';
+	order: -2;
+	width: min(500px, 88vw);
+	aspect-ratio: 1536 / 1024;
+	background: url('/static/gumbleyai-logo.png') center / contain no-repeat;
+	filter: drop-shadow(0 14px 34px rgba(60, 224, 251, 0.22));
+}
+
+/* "Brought to you by:" over the Gumbley Technologies wordmark. One element
+ * carries both: the caption is its text, the wordmark its background image,
+ * held clear of the text by the bottom padding. */
+html #auth-login-card::after {
+	content: 'Brought to you by:';
+	order: -1;
+	margin-top: 10px;
+	margin-bottom: 26px;
+	padding-bottom: 53px;
+	/* The caption is wider than the 110px wordmark under it, so the box is
+	 * sized by the text and the image is centred at a fixed width. Sizing the
+	 * box to the image instead wraps "Brought to you by:" onto two lines. */
+	white-space: nowrap;
+	font: 600 11px/1 'Nunito Sans', sans-serif;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: #546c85;
+	text-align: center;
+	background: url('/static/gumbley-wordmark.png') bottom center / 110px auto no-repeat;
+}
+
+/* ── The pill ────────────────────────────────────────────────────────────
+ * Scoped to the card, NOT to a form: the OAuth buttons sit in a bare <div>
+ * beside the password form, not inside it, so `#auth-login-card form button`
+ * matches nothing while ENABLE_LOGIN_FORM is false — which is the whole time.
+ * (Verified in the browser; the first attempt used the form selector and the
+ * button rendered stock.)
+ *
+ * Every button on the card gets the pill. With OIDC as the only provider that
+ * is exactly one; were a second added it should look the same anyway.
+ */
+html #auth-login-card button {
+	background: linear-gradient(100deg, #a5fb03, #3ce0fb);
+	color: #0a1826;
+	border-radius: 100px;
+	padding: 15px 26px;
+	font: 700 14.5px/1.2 'Nunito Sans', sans-serif;
+	box-shadow: 0 10px 30px rgba(60, 224, 251, 0.25);
+	transition: filter 0.15s ease, transform 0.15s ease;
+}
+
+html #auth-login-card button:hover {
+	filter: brightness(1.06);
+	transform: translateY(-1px);
+}
+
+/* The provider icon inside the pill inherits `stroke="currentColor"`, so the
+ * colour above already carries it; this only stops it crowding the label. */
+html #auth-login-card button svg {
+	margin-right: 0.5rem;
+}
+
+/* Headings on the gate take the display face. */
+html #auth-login-card .text-2xl {
+	font-family: 'Outfit', 'Nunito Sans', system-ui, sans-serif;
+	font-weight: 700;
+}

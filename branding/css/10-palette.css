@@ -1,0 +1,87 @@
+/* Gumbley AI — palette.
+ *
+ * WHY THIS IS ALL VARIABLES: Open WebUI is Tailwind v4, and Tailwind v4 emits
+ * its theme scale as real CSS custom properties inside `@layer theme`
+ * (src/tailwind.css). Two consequences make this file the whole rebrand:
+ *
+ *   1. Redefining --color-gray-* here re-tints EVERY `bg-gray-900`,
+ *      `dark:text-gray-400`, `border-gray-200` … in the app at once. No
+ *      component selectors, so an upstream refactor of any component cannot
+ *      break it.
+ *   2. Declarations in this file are UNLAYERED, and unlayered beats layered in
+ *      the cascade no matter the source order — so it does not matter that
+ *      custom.css is linked before SvelteKit injects the app stylesheet.
+ *
+ * The design reference (design/Gumbley AI.dc.html) defines its own token names;
+ * each is mapped onto the Tailwind step Open WebUI actually uses for that
+ * surface, noted per line below.
+ */
+
+:root {
+	/* ── brand constants ─────────────────────────────────────────────── */
+	--gt-lime: #a5fb03; /* accent, dark mode */
+	--gt-lime-ink: #0a1826; /* text ON the lime accent */
+	--gt-green: #5aa300; /* accent, light mode */
+	--gt-green-ink: #ffffff;
+	--gt-cyan: #33c9fb; /* links, gradient partner */
+	--gt-deep: #0f3d5e; /* login backdrop centre */
+
+	/* resolved accent — flipped under html.dark below */
+	--gt-accent: var(--gt-green);
+	--gt-accent-ink: var(--gt-green-ink);
+
+	/* ── the grey ramp ───────────────────────────────────────────────────
+	 * One ramp serves both themes: light mode uses the 50–700 end, dark mode
+	 * the 100 + 700–950 end. Design token → Tailwind step in the comments.
+	 */
+	--color-gray-50: #eaf2f8; /* --gaiSide  (light) sidebar */
+	--color-gray-100: #e7f6ff; /* --gaiInk   (dark) body text · (light) hover fill */
+	--color-gray-200: #d6e3ee; /* --gaiLine  (light) default border colour */
+	--color-gray-300: #b9cddd; /* (dark) secondary text · (light) dividers */
+	--color-gray-400: #8fa8bd; /* --gaiDim   (dark) muted text, placeholders */
+	--color-gray-500: #6d8ba4; /* muted text, both themes */
+	--color-gray-600: #546c85; /* --gaiDim   (light) muted text */
+	--color-gray-700: #33506a; /* (light) body text · (dark) filled chips */
+	--color-gray-800: #173449; /* --gaiHover (dark) hover fills, borders */
+	--color-gray-850: #10283c; /* --gaiField (dark) inputs, raised surfaces */
+	--color-gray-900: #0b1e2e; /* --gaiBg    (dark) main canvas */
+	--color-gray-950: #081826; /* --gaiSide  (dark) sidebar */
+
+	/* ── blue → brand cyan ───────────────────────────────────────────────
+	 * Open WebUI's blue is almost entirely focus rings (78 of 109 usages are
+	 * `focus:border-blue-400` / `dark:focus:border-blue-500`). Re-anchoring
+	 * the ramp on #33c9fb turns every focus ring brand-coloured in one move.
+	 */
+	--color-blue-50: #e8f8ff;
+	--color-blue-100: #cbefff;
+	--color-blue-200: #a3e4fe;
+	--color-blue-300: #6bd7fd;
+	--color-blue-400: #33c9fb; /* the brand cyan itself */
+	--color-blue-500: #12b2ea;
+	--color-blue-600: #068fc4;
+	--color-blue-700: #0a719d;
+	--color-blue-800: #105d80;
+	--color-blue-900: #134d6a;
+	--color-blue-950: #0b3148;
+
+	/* ── typography ──────────────────────────────────────────────────────
+	 * --app-font-family is Open WebUI's own hook: src/tailwind.css sets
+	 * `font-family: var(--app-font-family, -apple-system), …` on html, so
+	 * this one line re-fonts the entire UI with no source patch at all.
+	 */
+	--app-font-family: 'Nunito Sans';
+}
+
+html.dark {
+	--gt-accent: var(--gt-lime);
+	--gt-accent-ink: var(--gt-lime-ink);
+}
+
+/* Headings take Outfit, per the design reference. Open WebUI does not set a
+ * heading face of its own, so this adds one rather than overriding one. */
+h1,
+h2,
+h3,
+.font-heading {
+	font-family: 'Outfit', 'Nunito Sans', system-ui, sans-serif;
+}
