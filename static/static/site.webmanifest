@@ -1,21 +1,42 @@
 {
-  "name": "Gumbley AI",
-  "short_name": "Gumbley AI",
-  "icons": [
-    {
-      "src": "/static/web-app-manifest-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/static/web-app-manifest-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
-  ],
-  "theme_color": "#0b1e2e",
-  "background_color": "#0b1e2e",
-  "display": "standalone"
+	"id": "/",
+	"name": "Gumbley AI",
+	"short_name": "Gumbley AI",
+	"description": "The Gumbley Technologies AI assistant. Sign in with your Gumbley account.",
+	"lang": "en",
+	"dir": "ltr",
+	"start_url": "/",
+	"scope": "/",
+	"display": "standalone",
+	"orientation": "any",
+	"theme_color": "#0b1e2e",
+	"background_color": "#0b1e2e",
+	"categories": ["productivity", "utilities"],
+	"icons": [
+		{
+			"src": "/static/web-app-manifest-192x192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/static/web-app-manifest-512x512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/static/web-app-manifest-maskable-512x512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		}
+	],
+	"share_target": {
+		"action": "/",
+		"method": "GET",
+		"params": {
+			"text": "shared"
+		}
+	}
 }

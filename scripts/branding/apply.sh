@@ -26,6 +26,7 @@ check=0
 [ "${1:-}" = "--check" ] && check=1
 
 css_out="branding/static/custom.css"
+manifest_src="branding/static/manifest.json"
 overlay="branding/static"
 dest="static/static"
 
@@ -53,6 +54,25 @@ if [ "$check" = 1 ]; then
 else
 	cp "$tmp" "$css_out"
 	note "+" "$css_out ($(wc -l <"$css_out") lines from $(ls branding/css/*.css | wc -l) sources)"
+fi
+
+# ── 1b. site.webmanifest mirrors manifest.json ───────────────────────────────
+# Upstream ships its own static/site.webmanifest naming the product "Open
+# WebUI". NOTHING references it — app.html links /manifest.json, which is a
+# backend route — but it sits at a public URL on gumbley.ai, and the copy it
+# ships also declares both icons `maskable`, which is wrong (see BRANDING.md).
+# So we keep ours over the top. It is generated from manifest.json rather than
+# maintained beside it, because two hand-written manifests drift.
+mirror="branding/static/site.webmanifest"
+if [ "$check" = 1 ]; then
+	if [ ! -f "$mirror" ] || ! cmp -s "$manifest_src" "$mirror"; then
+		bad "$mirror is stale — run scripts/branding/apply.sh"
+	else
+		note "=" "$mirror mirrors manifest.json"
+	fi
+else
+	cp "$manifest_src" "$mirror"
+	note "+" "$mirror (mirror of manifest.json)"
 fi
 
 # ── 2. overlay → static/static ───────────────────────────────────────────────

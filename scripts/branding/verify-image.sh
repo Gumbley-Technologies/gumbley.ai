@@ -52,6 +52,32 @@ out="$(docker run --rm --entrypoint sh "$img" -c '
   [ -d $b/fonts ] && [ "$(ls $b/fonts | wc -l)" -ge 7 ] \
     && say ok "self-hosted fonts present" || say FAIL "fonts missing"
 
+  # --- the PWA install surface ---
+  # EXTERNAL_PWA_MANIFEST_URL (set on the container, not baked into the image)
+  # points the /manifest.json route at this file, and main.py raise_for_status()
+  # es the fetch — so if it is absent the route 500s and the app stops being
+  # installable at all. It must also be .json, not .webmanifest: that fetch is
+  # aiohttp .json(), which rejects application/manifest+json.
+  grep -q "\"Gumbley AI\"" $b/manifest.json 2>/dev/null \
+    && say ok "PWA manifest is ours" || say FAIL "PWA manifest missing or not ours"
+  # Every icon the manifest names has to exist, or the install UI falls back to
+  # a screenshot of the page. Nothing errors when one is missing.
+  miss=""
+  for p in $(grep -o "/static/[A-Za-z0-9._-]*\.png" $b/manifest.json 2>/dev/null | sort -u); do
+    [ -f "$b/${p#/static/}" ] || miss="$miss $p"
+  done
+  [ -n "$(grep -o "/static/[A-Za-z0-9._-]*\.png" $b/manifest.json 2>/dev/null)" ] \
+    && { [ -z "$miss" ] && say ok "manifest icons all present" \
+         || say FAIL "manifest icons missing:$miss"; } \
+    || say FAIL "manifest declares no icons"
+  # Upstream ships its own site.webmanifest naming the product "Open WebUI".
+  # Nothing reads it, but it is public, so ours has to stay on top of it — and
+  # this is exactly the check that catches it reappearing after an upgrade.
+  # (No apostrophes anywhere in this heredoc-less block: the whole script body
+  # is one single-quoted argument to `sh -c`, so one would end it early.)
+  grep -q "\"Gumbley AI\"" $b/site.webmanifest 2>/dev/null \
+    && say ok "site.webmanifest is ours" || say FAIL "site.webmanifest is the stock upstream file"
+
   # --- the name patch ---
   # Match the STATEMENT, not the string: the replacement leaves a comment
   # behind that mentions " (Open WebUI)" and a looser grep matches that.

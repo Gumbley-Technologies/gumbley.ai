@@ -51,11 +51,39 @@ open(sys.argv[2], 'w').write(
 PY
 
 echo "→ app icons (the lock-up)"
-magick "$icon512" -resize 180x180 "${opt[@]}" "$out/apple-touch-icon.png"
-# main.py's generated /manifest.json declares /static/logo.png as 500x500.
+# main.py's generated /manifest.json declares /static/logo.png as 500x500. We
+# override that manifest (branding/static/manifest.json), but logo.png is still
+# used inside the app, on themed surfaces — so it keeps its transparency.
 magick "$icon512" -resize 500x500 "${opt[@]}" "$out/logo.png"
+# The `any` icons the manifest points at. Transparent on purpose: the launcher
+# and task-switcher surfaces that use them composite onto their own background.
 magick "$icon192" "${opt[@]}" "$out/web-app-manifest-192x192.png"
 magick "$icon512" "${opt[@]}" "$out/web-app-manifest-512x512.png"
+
+echo "→ install icons (opaque — these two MUST NOT be transparent)"
+# The lock-up art is transparent, and two install surfaces handle that badly:
+#
+#   apple-touch-icon  iOS composites a transparent home-screen icon onto BLACK,
+#                     which puts the lock-up's dark navy shield on near-black
+#                     and loses its silhouette. Flatten it.
+#   maskable          Android crops an adaptive icon to a shape it chooses, so
+#                     the art must (a) be opaque to the edges and (b) keep
+#                     everything important inside the "safe zone" — the circle
+#                     of 80% diameter. The lock-up is full-bleed, so it is
+#                     scaled to 400/512 (78%) and centred; at that size the
+#                     wordmark's tips clear the circle with room to spare.
+#                     Declaring the un-padded lock-up maskable instead — which
+#                     is what the favicon generator's site.webmanifest did —
+#                     gets the wordmark sliced off on every Android launcher.
+#
+# Flattened onto the design's light canvas rather than the brand navy: the
+# shield's own interior IS navy, so on navy the mark loses its outline and goes
+# muddy. Checked both, rendered through a circular mask; light wins clearly.
+lightbg='#f4f9fd' # --gaiBg light
+magick "$icon512" -resize 180x180 -background "$lightbg" -alpha remove -alpha off \
+	"${opt[@]}" "$out/apple-touch-icon.png"
+magick "$icon512" -resize 400x400 -background "$lightbg" -gravity center -extent 512x512 \
+	-alpha remove -alpha off "${opt[@]}" "$out/web-app-manifest-maskable-512x512.png"
 
 echo "→ splash + sign-in art"
 # app.html preloads splash-dark.png on dark, splash.png on light, and sizes it

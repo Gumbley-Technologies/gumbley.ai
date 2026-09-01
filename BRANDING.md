@@ -25,6 +25,7 @@ the diff against upstream, the less there is to break when upstream moves.
 | Palette, typography, chrome, sign-in | `branding/css/*.css` → `custom.css` | Yes — `custom.css` is upstream's own extension point and ships empty |
 | Logos, favicons, splash, fonts | `branding/static/` | Yes — our filenames overlay theirs; theirs stay |
 | Pre-hydration title, theme colour | `branding/static/loader.js` | Yes — `loader.js` is also upstream's, also ships empty |
+| The installed-app identity (PWA) | `branding/static/manifest.json` + `EXTERNAL_PWA_MANIFEST_URL` | Yes — that variable is upstream's own hook |
 | The product name everywhere in the UI | `WEBUI_NAME` env var | Yes — no code involved |
 | Dropping the `" (Open WebUI)"` suffix | `backend/open_webui/env.py` | **Anchored patch.** Fails loudly if upstream moves it |
 | `APP_NAME`, `<title>` | `src/lib/constants.ts`, `src/app.html` | **Anchored patches.** Only affect builds from this tree |
@@ -43,6 +44,76 @@ custom properties inside `@layer theme`. Two consequences:
 
 `src/tailwind.css` also sets `font-family: var(--app-font-family, …)` on `html`,
 so a single line re-fonts the whole UI.
+
+---
+
+## The PWA
+
+gumbley.ai installs as its own app — its own icon, its own window, its own
+entry in the launcher and task switcher. That is a manifest, and it is the same
+shape as everything else here: a file in the overlay plus one environment
+variable, no source edit.
+
+`backend/open_webui/main.py` serves `/manifest.json` itself, generating a stock
+one from `WEBUI_NAME` unless **`EXTERNAL_PWA_MANIFEST_URL`** is set — in which
+case it fetches that URL and returns its JSON verbatim. That variable is set on
+the container (see the infra repo's `infra/gumbley-ai/docker-compose.yml`) and
+points back at this overlay:
+
+```
+EXTERNAL_PWA_MANIFEST_URL: http://127.0.0.1:8080/static/manifest.json
+```
+
+Three things about that line are load-bearing:
+
+* **It is a loopback URL, not `https://gumbley.ai/…`.** The fetch happens
+  inside the container. Going out to the public name would put DNS, TLS, the
+  nginx rate limiter and the hairpin route between the app and its own manifest,
+  and `main.py` calls `raise_for_status()` — any of them failing turns
+  `/manifest.json` into a 500 and the app stops being installable. On loopback
+  the only way it fails is the app being down, in which case nothing is being
+  served anyway.
+* **The file must be `.json`, not `.webmanifest`.** That fetch ends in aiohttp's
+  `r.json()`, which enforces `application/json` and raises `ContentTypeError` on
+  anything else. `StaticFiles` serves `.webmanifest` as
+  `application/manifest+json` — correct per spec, and fatal here. (The browser
+  never sees this filename: it fetches `/manifest.json`, which is the route.)
+* **`/static/` is unauthenticated**, which it has to be — the browser fetches
+  the manifest and its icons before anyone signs in.
+
+### The icons
+
+Three, and the third is the one people get wrong:
+
+| Icon | Purpose | Must it be opaque? |
+|---|---|---|
+| `web-app-manifest-192x192.png`, `-512x512.png` | `any` | No — transparent, the surface composites it |
+| `web-app-manifest-maskable-512x512.png` | `maskable` | **Yes**, to the edges |
+| `apple-touch-icon.png` (`<link>` in `app.html`, not the manifest) | iOS home screen | **Yes** — iOS composites transparency onto **black** |
+
+A `maskable` icon is cropped by the launcher to whatever shape it likes, so the
+art has to survive a circle of 80% diameter. The lock-up is full-bleed, so
+`build-assets.sh` scales it to 78% and centres it on the light brand canvas.
+The favicon generator's old `site.webmanifest` — now deleted — declared the
+**un-padded** lock-up as `maskable`, which slices the wordmark off on every
+Android launcher. Both opaque icons sit on `#f4f9fd` rather than the brand
+navy: the shield's own interior is navy, so on navy it loses its outline.
+
+### What it does not do
+
+There is **no service worker**, so there is no offline mode and no automatic
+install banner — Chrome's prompt heuristic still wants a fetch handler.
+Installing from the browser menu works: Chrome dropped the service-worker
+requirement for that in 108 (mobile) / 112 (desktop). This is not an oversight
+to fix later — Open WebUI ships no service worker and `src/routes/+layout.svelte`
+actively *unregisters* any it finds, as its mechanism for forcing a clean reload
+after a frontend update. Adding one would fight that.
+
+One thing to watch on first install: sign-in leaves the scope (`/`) for
+`sso.gumbleytechnologies.com` and comes back. Chrome handles an out-of-scope
+navigation in an in-app tab and returns to the app window once the redirect
+lands back on `gumbley.ai` — the normal OAuth-in-a-PWA path — but it has not
+been exercised from an actually-installed window yet. Try it at first install.
 
 ---
 
@@ -112,6 +183,8 @@ branding/
   css/30-auth.css       the sign-in gate
   static/               everything that overlays the app's /static route,
                         INCLUDING the generated custom.css and the fonts
+  static/manifest.json  the PWA manifest, hand-written — this is the installed
+                        app's identity. EXTERNAL_PWA_MANIFEST_URL points at it
 scripts/branding/
   apply.sh              apply/verify the brand on this working tree
   patch-source.py       the three anchored name patches
